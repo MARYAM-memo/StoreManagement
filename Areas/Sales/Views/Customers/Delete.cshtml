@@ -1,0 +1,162 @@
+﻿@using StoreManagement.Models
+@model Customer
+@{
+    ViewData["Title"] = "Delete Customer";
+    var orderCount = ViewBag.OrderCount as int? ?? 0;
+    var totalSpent = ViewBag.TotalSpent as decimal? ?? 0;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-danger">
+            <i class="fas fa-exclamation-triangle"></i> Delete Customer
+        </h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card shadow border-danger mb-4">
+        <div class="card-header py-3 bg-danger text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-exclamation-circle"></i> Delete Confirmation
+            </h6>
+        </div>
+        <div class="card-body">
+            @if (orderCount > 0)
+            {
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-ban"></i> Cannot Delete Customer
+                    </h5>
+                    <p>
+                        This customer has <strong>@orderCount order(s)</strong> with a total spending of
+                        <strong>@totalSpent.ToString("C")</strong>.
+                        You cannot delete a customer that has order history.
+                    </p>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>What to do:</strong>
+                    <ol>
+                        <li>Deactivate the customer instead (recommended)</li>
+                        <li>Customer data will be preserved for reporting</li>
+                        <li>Customer will not appear in active lists</li>
+                    </ol>
+                    </p>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a asp-action="Deactivate" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="fas fa-ban"></i> Deactivate Instead
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-skull-crossbones"></i> Are you sure you want to delete this customer?
+                    </h5>
+                    <p class="mb-0">
+                        This action cannot be undone. The customer will be permanently removed from the database.
+                    </p>
+                </div>
+
+                <!-- Customer Details -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4 class="text-danger">@Model.Name</h4>
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <p><i class="fas fa-envelope"></i> @Model.Email</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <p><i class="fas fa-phone"></i> @Model.Phone</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Address))
+                        {
+                            <p><i class="fas fa-map-marker-alt"></i> @Model.Address</p>
+                        }
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="mb-2">
+                            <strong>Status:</strong>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </div>
+                        <div class="text-muted">
+                            <small>Created: @Model.CreatedAt.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Form -->
+                <div class="mt-4 pt-3 border-top">
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Confirmation -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label text-danger fw-bold" for="confirmDelete">
+                                I understand this action is permanent and cannot be undone
+                            </label>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash"></i> Confirm Delete
+                            </button>
+                            <a asp-action="Deactivate" asp-route-id="@Model.Id" class="btn btn-warning">
+                                <i class="fas fa-ban"></i> Deactivate Instead
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            @if (orderCount == 0)
+                {
+                    <text>
+                        // Enable delete button only when checkbox is checked
+                        $('#confirmDelete').change(function() {
+                            $('#deleteBtn').prop('disabled', !$(this).is(':checked'));
+                        });
+
+                        // Confirmation dialog on form submit
+                        $('form').submit(function(e) {
+                            if (!$('#confirmDelete').is(':checked')) {
+                            e.preventDefault();
+                        alert('Please confirm that you understand this action is permanent.');
+                        return false;
+                            }
+
+                        return confirm('Are you absolutely sure you want to permanently delete this customer?');
+                        });
+                    </text>
+            }
+            });
+    </script>
+}

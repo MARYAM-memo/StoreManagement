@@ -1,0 +1,121 @@
+﻿@using StoreManagement.Models
+@model Customer
+
+@{
+    ViewData["Title"] = "Deactivate Customer";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-warning">
+            <i class="fas fa-ban"></i> Deactivate Customer
+        </h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card shadow border-warning mb-4">
+        <div class="card-header py-3 bg-warning text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-exclamation-triangle"></i> Deactivate Customer
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <h5 class="alert-heading">
+                    <i class="fas fa-info-circle"></i> What happens when you deactivate a customer?
+                </h5>
+                <ul class="mb-0">
+                    <li>The customer will be marked as inactive</li>
+                    <li>They will no longer appear in active customer lists</li>
+                    <li>Their order history will be preserved</li>
+                    <li>They cannot be selected for new orders</li>
+                    <li>You can reactivate them at any time by editing their profile</li>
+                </ul>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h4>@Model.Name</h4>
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <p><i class="fas fa-envelope"></i> @Model.Email</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <p><i class="fas fa-phone"></i> @Model.Phone</p>
+                    }
+
+                    <div class="mt-3">
+                        <strong>Order History:</strong>
+                        <div class="mt-1">
+                            <span class="badge bg-info">@Model.TotalOrders orders</span>
+                            <span class="badge bg-success ms-2">@Model.TotalSpent.ToString("C") spent</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="h5 text-success">Active</div>
+                    <span class="badge bg-success">Current Status</span>
+                </div>
+            </div>
+
+            <!-- Deactivate Form -->
+            <div class="mt-4 pt-3 border-top">
+                <form asp-action="Deactivate" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Confirmation -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDeactivate" required>
+                        <label class="form-check-label text-warning fw-bold" for="confirmDeactivate">
+                            I understand that deactivating will hide this customer from active lists
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-group" role="group">
+                        <button type="submit" class="btn btn-warning" id="deactivateBtn" disabled>
+                            <i class="fas fa-ban"></i> Confirm Deactivate
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Instead
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Enable deactivate button only when checkbox is checked
+            $('#confirmDeactivate').change(function () {
+                $('#deactivateBtn').prop('disabled', !$(this).is(':checked'));
+            });
+
+            // Confirmation dialog on form submit
+            $('form').submit(function (e) {
+                if (!$('#confirmDeactivate').is(':checked')) {
+                    e.preventDefault();
+                    alert('Please confirm that you understand the consequences of deactivating this customer.');
+                    return false;
+                }
+
+                return confirm('Are you sure you want to deactivate this customer?');
+            });
+        });
+    </script>
+}

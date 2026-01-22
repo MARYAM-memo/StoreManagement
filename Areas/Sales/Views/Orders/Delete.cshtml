@@ -1,0 +1,235 @@
+﻿@using StoreManagement.Models
+@model Order
+
+@{
+    ViewData["Title"] = "Delete Order";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-danger">
+            <i class="fas fa-exclamation-triangle"></i> Delete Order
+        </h1>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+            <i class="fas fa-arrow-left"></i> Back to Details
+        </a>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card shadow border-danger mb-4">
+        <div class="card-header py-3 bg-danger text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-exclamation-circle"></i> Delete Order #@Model.OrderNumber
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">
+                    <i class="fas fa-skull-crossbones"></i> Warning: This action cannot be undone!
+                </h5>
+                <p class="mb-0">
+                    Deleting this order will permanently remove it from the system.
+                    This includes all order items and will affect customer statistics.
+                </p>
+            </div>
+
+            <!-- Order Details -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h4 class="text-danger">Order #@Model.OrderNumber</h4>
+                    <table class="table table-sm table-bordered">
+                        <tr>
+                            <th>Customer:</th>
+                            <td>@Model.Customer?.Name</td>
+                        </tr>
+                        <tr>
+                            <th>Order Date:</th>
+                            <td>@Model.OrderDate.ToString("MMM dd, yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Payment Status:</th>
+                            <td>
+                                <span class="badge @GetPaymentBadgeClass(Model.PaymentStatus??"")">
+                                    @(Model.PaymentStatus ?? "Pending")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total Amount:</th>
+                            <td class="text-success fw-bold">@Model.TotalAmount.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <th>Items Count:</th>
+                            <td>
+                                <span class="badge bg-info">@Model.OrderItems?.Count ?? 0 items</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <!-- Impact Analysis -->
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="mb-0">Impact Analysis</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-user text-danger"></i>
+                                    <strong>Customer stats</strong> will be reduced
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-box text-warning"></i>
+                                    <strong>Stock levels</strong> will be restored (if completed)
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-chart-line text-info"></i>
+                                    <strong>Sales reports</strong> will be affected
+                                </li>
+                                <li>
+                                    <i class="fas fa-database text-secondary"></i>
+                                    <strong>Order history</strong> will be lost
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What happens section -->
+            <div class="mb-4">
+                <h6><i class="fas fa-list"></i> This action will:</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-trash text-danger"></i>
+                        Permanently delete the order record
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-boxes text-warning"></i>
+                        Delete all order items (@Model.OrderItems?.Count ?? 0 items)
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-undo text-success"></i>
+                        Restore product stock (if order was completed)
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-chart-bar text-info"></i>
+                        Update customer statistics (orders count, total spent)
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-ban text-danger"></i>
+                        This action cannot be undone
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Delete Form -->
+            <div class="mt-4 pt-3 border-top">
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Confirmation Checkboxes -->
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmIrreversible" required>
+                        <label class="form-check-label text-danger fw-bold" for="confirmIrreversible">
+                            I understand this action is permanent and irreversible
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmStock" required>
+                        <label class="form-check-label text-warning fw-bold" for="confirmStock">
+                            I understand stock will be restored for completed orders
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmCustomerStats" required>
+                        <label class="form-check-label text-info fw-bold" for="confirmCustomerStats">
+                            I understand customer statistics will be updated
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-group" role="group">
+                        <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                            <i class="fas fa-trash"></i> Confirm Delete
+                        </button>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Instead
+                        </a>
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Enable delete button only when all checkboxes are checked
+            function updateDeleteButton() {
+                const allChecked = $('#confirmIrreversible').is(':checked') &&
+                    $('#confirmStock').is(':checked') &&
+                    $('#confirmCustomerStats').is(':checked');
+                $('#deleteBtn').prop('disabled', !allChecked);
+            }
+
+            $('.form-check-input').change(updateDeleteButton);
+
+            // Confirmation dialog on form submit
+            $('form').submit(function (e) {
+                if (!$('#confirmIrreversible').is(':checked') ||
+                    !$('#confirmStock').is(':checked') ||
+                    !$('#confirmCustomerStats').is(':checked')) {
+                    e.preventDefault();
+                    alert('Please confirm all the statements above.');
+                    return false;
+                }
+
+                return confirm('⚠️ FINAL WARNING: Are you absolutely sure you want to permanently delete this order?\n\nThis action cannot be undone!');
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning",
+            "processing" => "bg-info",
+            "completed" => "bg-success",
+            "cancelled" => "bg-danger",
+            "refunded" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetPaymentBadgeClass(string paymentStatus)
+    {
+        return paymentStatus?.ToLower() switch
+        {
+            "paid" => "bg-success",
+            "pending" => "bg-warning",
+            "failed" => "bg-danger",
+            "refunded" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

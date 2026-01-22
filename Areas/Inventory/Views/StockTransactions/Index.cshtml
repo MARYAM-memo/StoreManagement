@@ -1,0 +1,363 @@
+﻿@* في Areas/Inventory/Views/StockTransactions/Index.cshtml *@
+@model IEnumerable<StockTransaction>
+@using StoreManagement.Areas.Inventory.ViewModels
+@using StoreManagement.Common
+@using StoreManagement.Models.Inventory
+
+@{
+    ViewData["Title"] = "Stock Transactions";
+    var filter = ViewBag.Filter as StockFilterVM ?? new StockFilterVM();
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-exchange-alt"></i> Stock Transactions
+        </h1>
+        <div>
+            <a asp-action="Create" class="btn btn-primary me-2">
+                <i class="fas fa-plus"></i> New Transaction
+            </a>
+            <a asp-action="BulkPurchase" class="btn btn-success">
+                <i class="fas fa-cart-plus"></i> Bulk Purchase
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Transactions
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count()</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exchange-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Purchases
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(t => t.TransactionType ==
+                                                                "Purchase")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Sales
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(t => t.TransactionType ==
+                                                                "Sale")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Returns
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(t => t.TransactionType ==
+                                                                "Return")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-undo fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Total Quantity
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(t => t.Quantity)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Total Cost
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(t =>
+                                                                t.TotalCost).ToString("C")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filter Transactions</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="SearchTerm" class="form-control"
+                        placeholder="Reference #, Notes, or Product" value="@filter.SearchTerm" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Transaction Type</label>
+                    <select name="TransactionType" class="form-select" asp-items="ViewBag.TransactionTypes"></select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Product</label>
+                    <select name="ProductId" class="form-select" asp-items="ViewBag.Products">
+                        <option value="">All Products</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Supplier</label>
+                    <select name="SupplierId" class="form-select" asp-items="ViewBag.Suppliers">
+                        <option value="">All Suppliers</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <div class="input-group">
+                        <input type="date" name="StartDate" class="form-control"
+                            value="@(filter.StartDate?.ToString("yyyy-MM-dd"))" placeholder="From" />
+                        <span class="input-group-text">to</span>
+                        <input type="date" name="EndDate" class="form-control"
+                            value="@(filter.EndDate?.ToString("yyyy-MM-dd"))" placeholder="To" />
+                    </div>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Clear Filters
+                    </a>
+                    <button type="button" class="btn btn-success" onclick="exportTransactions()">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Transactions List</h6>
+            <div class="text-muted">
+                Showing @Model.Count() transactions
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="transactionsTable" width="100%" cellspacing="0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Supplier/Customer</th>
+                            <th>Type</th>
+                            <th class="text-end">Quantity</th>
+                            <th class="text-end">Unit Cost</th>
+                            <th class="text-end">Total Cost</th>
+                            <th>Reference</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @transaction.TransactionDate.ToString("MMM dd, yyyy")
+                                    <br />
+                                    <small class="text-muted">@transaction.TransactionDate.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    <strong>@transaction.Product?.Name</strong>
+                                   
+                                </td>
+                                <td>
+                                    @if (transaction.Supplier != null)
+                                    {
+                                        <span class="badge bg-info">Supplier</span>
+                                        <div>@transaction.Supplier.Name</div>
+                                    }
+                                    else if (transaction.TransactionType == "Sale")
+                                    {
+                                        <span class="badge bg-success">Customer Sale</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @GetTransactionBadgeClass(transaction.TransactionType)">
+                                        @transaction.TransactionType
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @if (transaction.TransactionType == "Sale")
+                                    {
+                                        <span class="text-danger">-@transaction.Quantity</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success">+@transaction.Quantity</span>
+                                    }
+                                </td>
+                                <td class="text-end">@transaction.UnitCost.ToString("C")</td>
+                                <td
+                                    class="text-end fw-bold @(transaction.TransactionType == "Sale" ? "text-danger" : "text-success")">
+                                    @transaction.TotalCost.ToString("C")
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(transaction.ReferenceNumber))
+                                    {
+                                        <div>@transaction.ReferenceNumber</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(transaction.Notes))
+                                    {
+                                        <small class="text-muted" title="@transaction.Notes">
+                                            @transaction.Notes.Truncate(30)
+                                        </small>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@transaction.Id" class="btn btn-sm btn-info"
+                                            title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@transaction.Id" class="btn btn-sm btn-danger"
+                                            title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        @if (transaction.TransactionType == "Purchase")
+                                        {
+                                            <a asp-controller="Suppliers" asp-action="Details"
+                                                asp-route-id="@transaction.SupplierId" class="btn btn-sm btn-warning"
+                                                title="View Supplier">
+                                                <i class="fas fa-truck"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No transactions found</h4>
+                    <p class="text-muted">Create your first transaction to get started</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Transaction
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').alert('close');
+        }, 5000);
+
+        // Export transactions function
+        function exportTransactions() {
+            // يمكن إضافة وظيفة التصدير هنا (Excel, PDF, etc.)
+            alert('Export functionality would be implemented here');
+        }
+    </script>
+}
+
+@functions {
+    private string GetTransactionBadgeClass(string transactionType)
+    {
+        return transactionType?.ToLower() switch
+        {
+            "purchase" => "bg-success",
+            "sale" => "bg-primary",
+            "return" => "bg-warning",
+            "adjustment" => "bg-info",
+            "transfer" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

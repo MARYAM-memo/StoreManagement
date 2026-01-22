@@ -1,0 +1,213 @@
+﻿@using StoreManagement.Common
+@model Category
+@{
+    ViewData["Title"] = "Category Details";
+    var categoryProducts = ViewBag.CategoryProducts as List<Product>;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-info-circle"></i> Category Details
+        </h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Category Info -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-@(Model.IsActive ? "success" : "secondary") text-white">
+                    <h6 class="m-0 font-weight-bold">Category Overview</h6>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-primary mb-3">@Model.Name</h3>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Description</h6>
+                            <p class="text-muted">@Model.Description</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light">
+                            <i class="fas fa-info-circle"></i> No description provided
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Status</h6>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold">Statistics</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="h4 text-primary mb-1">@(categoryProducts?.Count ?? 0)</div>
+                                <small class="text-muted">Products</small>
+                            </div>
+                            <div class="col-6">
+                                @if (categoryProducts?.Any() == true)
+                                {
+                                    <div class="h4 text-success mb-1">
+                                        @categoryProducts.Sum(p => p.StockQuantity)
+                                    </div>
+                                    <small class="text-muted">Total Stock</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-calendar-plus"></i> Created: 
+                        @Model.CreatedAt.ToDisplayDate()
+                    </small>
+                    <br>
+                    <small>
+                        <i class="fas fa-calendar-edit"></i> Updated: 
+                        @Model.UpdatedAt.ToDisplayDate()
+                    </small>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit"></i>  Edit Category
+                        </a>
+                        @if (Model.IsActive)
+                        {
+                            <a asp-action="Deactivate" asp-route-id="@Model.Id" class="btn btn-danger">
+                                <i class="fas fa-ban"></i>  Deactivate
+                            </a>
+                        }
+                        @if (categoryProducts?.Count==0)
+                        {
+                            <a asp-action="Delete" asp-route-id="@Model.Id"
+                                class="btn btn-danger">
+                            <i class="fas fa-remove"></i>  Remove
+                        </a>}
+                        <a asp-controller="Products" asp-action="Create" 
+                           asp-route-categoryId="@Model.Id" class="btn btn-success">
+                            <i class="fas fa-plus"></i>  Add Product to Category
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Products in this Category -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-box"></i> Products in this Category
+                    </h6>
+                    <span class="badge bg-primary">@(categoryProducts?.Count ?? 0) products</span>
+                </div>
+                <div class="card-body">
+                    @if (categoryProducts?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in categoryProducts)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@product.Name</strong>
+                                                @if (!string.IsNullOrEmpty(product.Description))
+                                                {
+                                                    <br />
+                                                    <small class="text-muted">@product.Description.Truncate(50)</small>
+                                                }
+                                            </td>
+                                            
+                                            <td class="text-success">@product.Price.ToString("C")</td>
+                                            <td>
+                                                @if (product.StockQuantity <= 10)
+                                                {
+                                                    <span class="badge bg-danger">@product.StockQuantity</span>
+                                                }
+                                                else if (product.StockQuantity <= 20)
+                                                {
+                                                    <span class="badge bg-warning">@product.StockQuantity</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">@product.StockQuantity</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (product.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Products" asp-action="Details" 
+                                                   asp-route-id="@product.Id" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No products in this category</h5>
+                            <p class="text-muted">Add products to this category to see them here</p>
+                            <a asp-controller="Products" asp-action="Create" 
+                               asp-route-categoryId="@Model.Id" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Product
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,59 @@
+﻿<!-- في Views/Shared/_LoginPartial.cshtml -->
+@using Microsoft.AspNetCore.Identity
+@using StoreManagement.Areas.Users.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light-emphasis" href="#" id="navbarDropdown" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user me-1"></i>
+                @{
+                    var user = await UserManager.GetUserAsync(User);
+                    var displayName = user?.FullName ?? User.Identity?.Name;
+                }
+                @displayName
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li>
+                    <a class="dropdown-item" asp-area="Users" asp-controller="Account" asp-action="Profile">
+                        <i class="fas fa-user-circle me-2"></i>My Profile
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-area="Users" asp-controller="Account" asp-action="ChangePassword">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                
+                <li>
+                    <form class="form-inline" asp-area="Users" asp-controller="Account" asp-action="Logout"
+                        asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item me-2">
+            <a class="btn btn-outline-light btn-sm" asp-area="Users" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-1"></i>Login
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-light btn-sm" asp-area="Users" asp-controller="Account" asp-action="Register">
+                <i class="fas fa-user-plus me-1"></i>Register
+            </a>
+        </li>
+    }
+</ul>

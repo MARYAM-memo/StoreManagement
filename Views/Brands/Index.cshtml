@@ -1,0 +1,154 @@
+﻿@using StoreManagement.ViewModels
+@model IEnumerable<BrandVM>
+
+@{
+    ViewData["Title"] = "Brands";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-copyright"></i> Brands
+        </h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Brand
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Search Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Search Brands</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="searchTerm" class="form-control" placeholder="Search by brand name..."
+                        value="@ViewData["CurrentFilter"]" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <div class="row justify-content-between">
+        <!-- Brands Table -->
+        <div class="card shadow mx-3 mb-4" style="max-width: 42rem;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Brands List</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Brand Name</th>
+                                <th>Products</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var brand in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@brand.Name</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-box"></i> @brand.ProductCount
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@brand.Id" class="btn btn-sm btn-warning"
+                                                title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@brand.Id" class="btn btn-sm btn-danger"
+                                                title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a asp-controller="Products" asp-route-brandId="@brand.Id" asp-action="Create" 
+                                                class="btn btn-sm btn-success" title="Add Product">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-copyright fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No brands found</h4>
+                        <p class="text-muted">Create your first brand to get started</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Brand
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+        <!-- Statistics Card -->
+        <div class="card shadow mx-3" style="max-width: 30rem; height: 10rem;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Brands Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center justify-content-between align-items-center">
+                    <div class="col-md-4">
+                        <div class="h5 text-primary">@Model.Count()</div>
+                        <div class="text-muted">Total Brands</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="h5 text-info">@Model.Sum(b => b.ProductCount)</div>
+                        <div class="text-muted">Total Products</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').alert('close');
+        }, 5000);
+    </script>
+}

@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Restock Product";
+    var productName = ViewBag.ProductName as string;
+    var currentStock = ViewBag.CurrentStock as int? ?? 0;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle"></i> Restock Product
+        </h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Restock Form Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-success text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-boxes"></i> Add Stock to Inventory
+            </h6>
+        </div>
+        <div class="card-body">
+            <!-- Product Info -->
+            <div class="alert alert-info mb-4">
+                <h5><i class="fas fa-box"></i> @productName</h5>
+                <p class="mb-0">Current stock level: <span class="badge bg-info">@currentStock units</span></p>
+            </div>
+
+            <form asp-action="Restock" method="post">
+                <input type="hidden" name="id" value="@ViewContext.RouteData.Values["id"]" />
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Quantity Input -->
+                        <div class="form-group mb-4">
+                            <label for="quantity" class="form-label fw-bold">Quantity to Add</label>
+                            <div class="input-group">
+                                <input type="number" name="quantity" id="quantity" 
+                                       class="form-control form-control-lg" 
+                                       min="1" max="10000" value="1" required />
+                                <span class="input-group-text">units</span>
+                            </div>
+                            <span class="text-danger field-validation-valid" 
+                                  data-valmsg-for="quantity" data-valmsg-replace="true"></span>
+                        </div>
+
+                        <!-- Quick Add Buttons -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Quick Add</label>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary quick-add" data-value="10">
+                                    +10
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-add" data-value="50">
+                                    +50
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-add" data-value="100">
+                                    +100
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-add" data-value="500">
+                                    +500
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Preview -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Stock Preview</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="display-4 text-success mb-2" id="newStockPreview">@(currentStock + 1)</div>
+                                <div class="text-muted">New total stock</div>
+                                
+                                <div class="progress mt-3" style="height: 20px;">
+                                    <div id="stockProgress" class="progress-bar bg-success" 
+                                         role="progressbar" style="width: 0%">
+                                    </div>
+                                </div>
+                                <small class="text-muted" id="stockLevelText">Low Stock</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group mb-4">
+                    <label for="notes" class="form-label fw-bold">Notes (Optional)</label>
+                    <textarea name="notes" id="notes" class="form-control" rows="3" 
+                              placeholder="Add any notes about this restock..."></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-group mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check-circle"></i> Confirm Restock
+                    </button>
+                    <a asp-action="Details" asp-route-id="@ViewContext.RouteData.Values["id"]" 
+                       class="btn btn-info">
+                        <i class="fas fa-eye"></i> View Product
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock Level Guide -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Stock Level Guide</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-danger rounded-circle me-2" style="width: 15px; height: 15px;"></div>
+                        <span class="fw-bold">Critical</span>
+                    </div>
+                    <small class="text-muted">Below 10 units or minimum stock level</small>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-warning rounded-circle me-2" style="width: 15px; height: 15px;"></div>
+                        <span class="fw-bold">Low</span>
+                    </div>
+                    <small class="text-muted">10-20 units remaining</small>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-success rounded-circle me-2" style="width: 15px; height: 15px;"></div>
+                        <span class="fw-bold">Good</span>
+                    </div>
+                    <small class="text-muted">More than 20 units in stock</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const currentStock = @currentStock;
+            
+            function updatePreview() {
+                const quantity = parseInt($('#quantity').val()) || 0;
+                const newStock = currentStock + quantity;
+                
+                // Update preview numbers
+                $('#newStockPreview').text(newStock);
+                
+                // Update progress bar
+                let progressPercent = Math.min((newStock / 100) * 100, 100);
+                $('#stockProgress').css('width', progressPercent + '%');
+                
+                // Update stock level text
+                let stockLevel = 'Good';
+                let barColor = 'bg-success';
+                
+                if (newStock <= 10) {
+                    stockLevel = 'Critical';
+                    barColor = 'bg-danger';
+                } else if (newStock <= 20) {
+                    stockLevel = 'Low';
+                    barColor = 'bg-warning';
+                }
+                
+                $('#stockLevelText').text(stockLevel);
+                $('#stockProgress').removeClass().addClass('progress-bar ' + barColor);
+            }
+            
+            // Update preview on input change
+            $('#quantity').on('input', updatePreview);
+            
+            // Quick add buttons
+            $('.quick-add').click(function() {
+                const addValue = parseInt($(this).data('value'));
+                const currentValue = parseInt($('#quantity').val()) || 0;
+                $('#quantity').val(currentValue + addValue).trigger('input');
+            });
+            
+            // Initial update
+            updatePreview();
+        });
+    </script>
+}

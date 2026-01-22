@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas/Inventory/" />
+    <Folder Include="Areas/Inventory/Controllers/" />
+    <Folder Include="Areas/Inventory/ViewModels/" />
+    <Folder Include="Areas/Inventory/Views/" />
+    <Folder Include="Areas/Inventory/Views/StockTransactions/" />
+    <Folder Include="Areas/Inventory/Views/Suppliers/" />
+    <Folder Include="Areas/Sales/Controllers/" />
+    <Folder Include="Areas/Sales/Views/" />
+    <Folder Include="Areas/Sales/Views/Customers/" />
+    <Folder Include="Areas/Sales/Views/OrderItems/" />
+    <Folder Include="Areas/Sales/Views/Orders/" />
+    <Folder Include="Areas/Users/Models/" />
+    <Folder Include="Areas/Users/Views/Account/" />
+    <Folder Include="Areas/Users/Views/Roles/" />
+    <Folder Include="Areas/Users/Views/Shared/" />
+    <Folder Include="Areas/Users/Views/Users/" />
+    <Folder Include="Data/" />
+    <Folder Include="DataAccess/Services/" />
+    <Folder Include="Models/Inventory/" />
+    <Folder Include="ViewModels/" />
+    <Folder Include="Views/Brands/" />
+    <Folder Include="Views/Categories/" />
+    <Folder Include="Views/Products/" />
+    <Folder Include="wwwroot/css/images/" />
+    <Folder Include="wwwroot/css/images/products/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

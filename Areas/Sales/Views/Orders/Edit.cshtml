@@ -1,0 +1,505 @@
+﻿@using StoreManagement.Areas.Sales.ViewModels
+@model OrderVM
+
+@{
+    ViewData["Title"] = "Edit Order";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit"></i> Edit Order #@Model.OrderNumber
+        </h1>
+        <div>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                <i class="fas fa-eye"></i> View Details
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Order Form -->
+    <div class="row">
+        <!-- Left Column: Order Details -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Edit Order Information</h6>
+                    <span class="badge bg-info">Order #@Model.OrderNumber</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" id="orderForm">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="OrderNumber" />
+                        <input type="hidden" id="orderTotal" name="TotalAmount" value="@Model.TotalAmount" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Customer Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="CustomerId" class="form-label fw-bold"></label>
+                                    <select asp-for="CustomerId" class="form-select"
+                                        asp-items="@(new SelectList(Model.Customers, "Id", "Name"))" required>
+                                        <option value="">-- Select Customer --</option>
+                                    </select>
+                                    <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="OrderDate" class="form-label fw-bold"></label>
+                                    <input asp-for="OrderDate" class="form-control" type="datetime-local"
+                                        value="@Model.OrderDate.ToString("yyyy-MM-ddTHH:mm")" />
+                                    <span asp-validation-for="OrderDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status and Payment -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="Status" class="form-label fw-bold"></label>
+                                    <select asp-for="Status" class="form-select">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Processing">Processing</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                        <option value="Refunded">Refunded</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="PaymentMethod" class="form-label fw-bold"></label>
+                                    <select asp-for="PaymentMethod" class="form-select">
+                                        <option value="">-- Select Payment --</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Credit Card">Credit Card</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="PayPal">PayPal</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="PaymentStatus" class="form-label fw-bold"></label>
+                                    <select asp-for="PaymentStatus" class="form-select">
+                                        <option value="Pending">Pending</option>
+                                        <option value="Paid">Paid</option>
+                                        <option value="Failed">Failed</option>
+                                        <option value="Refunded">Refunded</option>
+                                    </select>
+                                    <span asp-validation-for="PaymentStatus" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Items Section -->
+                        <div class="card border mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="fas fa-boxes"></i> Order Items
+                                    <button type="button" class="btn btn-sm btn-success float-end"
+                                        onclick="addOrderItem()">
+                                        <i class="fas fa-plus"></i> Add Item
+                                    </button>
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="orderItemsContainer">
+                                    <!-- سيتم إضافة العناصر هنا -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Addresses -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ShippingAddress" class="form-label fw-bold"></label>
+                                    <textarea asp-for="ShippingAddress" class="form-control"
+                                        rows="3">@Model.ShippingAddress</textarea>
+                                    <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="BillingAddress" class="form-label fw-bold"></label>
+                                    <textarea asp-for="BillingAddress" class="form-control"
+                                        rows="3">@Model.BillingAddress</textarea>
+                                    <span asp-validation-for="BillingAddress" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Costs and Notes -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="ShippingCost" class="form-label fw-bold"></label>
+                                    <input asp-for="ShippingCost" class="form-control" value="@Model.ShippingCost" />
+                                    <span asp-validation-for="ShippingCost" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="TaxAmount" class="form-label fw-bold"></label>
+                                    <input asp-for="TaxAmount" class="form-control" value="@Model.TaxAmount" />
+                                    <span asp-validation-for="TaxAmount" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="DiscountAmount" class="form-label fw-bold"></label>
+                                    <input asp-for="DiscountAmount" class="form-control"
+                                        value="@Model.DiscountAmount" />
+                                    <span asp-validation-for="DiscountAmount" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Final Total</label>
+                                    <div class="h4 text-success" id="finalTotal">@Model.TotalAmount.ToString("C")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3">@Model.Notes</textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="form-group mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Summary -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-calculator"></i> Order Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Subtotal:</td>
+                            <td class="text-end" id="subtotalAmount">$0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Shipping:</td>
+                            <td class="text-end" id="shippingAmount">@Model.ShippingCost.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td>Tax:</td>
+                            <td class="text-end" id="taxAmount">@Model.TaxAmount.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td>Discount:</td>
+                            <td class="text-end text-danger" id="discountAmount">@Model.DiscountAmount.ToString("C")
+                            </td>
+                        </tr>
+                        <tr class="table-active">
+                            <th>Total:</th>
+                            <th class="text-end text-success" id="summaryTotal">@Model.TotalAmount.ToString("C")</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Order Actions -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cog"></i> Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-secondary" target="_blank">
+                            <i class="fas fa-print"></i> Print Order
+                        </a>
+                        <button type="button" class="btn btn-success" onclick="updateOrderStatus()">
+                            <i class="fas fa-check-circle"></i> Mark as Completed
+                        </button>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let itemCounter = 0;
+        const products = @Html.Raw(Json.Serialize(Model.Products));
+        const orderItems = @Html.Raw(Json.Serialize(Model.OrderItems));
+
+        $(document).ready(function () {
+            // Load existing order items
+            loadOrderItems();
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Calculate initial totals
+            updateTotals();
+        });
+
+        function setupEventListeners() {
+            // Update totals when costs change
+            $('#ShippingCost, #TaxAmount, #DiscountAmount').on('input', updateTotals);
+        }
+
+        function loadOrderItems() {
+            orderItems.forEach((item, index) => {
+                addOrderItem(
+                    item.productId,
+                    item.productName,
+                    item.quantity,
+                    item.unitPrice,
+                    item.discount,
+                    item.id
+                );
+            });
+        }
+
+        function addOrderItem(productId, productName, quantity, unitPrice, discount = 0, itemId = null) {
+            itemCounter++;
+            const index = itemCounter - 1;
+
+            const itemHtml = `
+                    <div class="order-item border rounded p-3 mb-3" data-item-id="${itemId || ''}">
+                        ${itemId ? `<input type="hidden" name="OrderItems[${index}].Id" value="${itemId}" />` : ''}
+                        <input type="hidden" name="OrderItems[${index}].ProductId" value="${productId}" />
+                    
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">Product</label>
+                                <div class="fw-bold">${productName}</div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">Quantity</label>
+                                <input type="number" class="form-control quantity-input" 
+                                       name="OrderItems[${index}].Quantity" 
+                                       value="${quantity}" min="1" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Unit Price</label>
+                                <input type="number" class="form-control price-input" 
+                                       name="OrderItems[${index}].UnitPrice" 
+                                       value="${unitPrice}" step="0.01" min="0.01" required />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">Actions</label>
+                                <button type="button" class="btn btn-danger btn-sm w-100" 
+                                        onclick="removeOrderItem(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label">Discount %</label>
+                                <input type="number" class="form-control discount-input" 
+                                       name="OrderItems[${index}].Discount" 
+                                       value="${discount}" min="0" max="100" step="0.01" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Total</label>
+                                <div class="h6 text-success item-total">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            $('#orderItemsContainer').append(itemHtml);
+
+            // Setup event listeners
+            const itemElement = $('#orderItemsContainer .order-item').last();
+            itemElement.find('.quantity-input, .price-input, .discount-input').on('input', function () {
+                updateItemTotal(itemElement);
+            });
+
+            // Calculate initial item total
+            updateItemTotal(itemElement);
+        }
+
+        function removeOrderItem(button) {
+            $(button).closest('.order-item').remove();
+            updateTotals();
+        }
+
+        function updateItemTotal(itemElement) {
+            const quantity = parseFloat(itemElement.find('.quantity-input').val()) || 0;
+            const price = parseFloat(itemElement.find('.price-input').val()) || 0;
+            const discount = parseFloat(itemElement.find('.discount-input').val()) || 0;
+
+            const discountMultiplier = 1 - (discount / 100);
+            const itemTotal = quantity * price * discountMultiplier;
+
+            itemElement.find('.item-total').text('$' + itemTotal.toFixed(2));
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let subtotal = 0;
+
+            // Calculate subtotal from all items
+            $('.order-item').each(function () {
+                const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                const price = parseFloat($(this).find('.price-input').val()) || 0;
+                const discount = parseFloat($(this).find('.discount-input').val()) || 0;
+                const discountMultiplier = 1 - (discount / 100);
+                subtotal += quantity * price * discountMultiplier;
+            });
+
+            const shipping = parseFloat($('#ShippingCost').val()) || 0;
+            const tax = parseFloat($('#TaxAmount').val()) || 0;
+            const discount = parseFloat($('#DiscountAmount').val()) || 0;
+
+            const total = subtotal + shipping + tax - discount;
+
+            // Update display
+            $('#subtotalAmount').text('$' + subtotal.toFixed(2));
+            $('#shippingAmount').text('$' + shipping.toFixed(2));
+            $('#taxAmount').text('$' + tax.toFixed(2));
+            $('#discountAmount').text('$' + discount.toFixed(2));
+            $('#summaryTotal').text('$' + total.toFixed(2));
+            $('#finalTotal').text('$' + total.toFixed(2));
+
+            // Update hidden field for form submission
+            $('#orderTotal').val(total.toFixed(2));
+        }
+
+        function updateOrderStatus() {
+            if (confirm('Are you sure you want to mark this order as completed?')) {
+                $.ajax({
+                    url: '@Url.Action("UpdateStatus", "Orders")',
+                    type: 'POST',
+                    data: {
+                        orderId: @Model.Id,
+                        status: 'Completed'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred. Please try again.');
+                    }
+                });
+            }
+        }
+
+        // Function to add new empty item
+        window.addOrderItem = function () {
+            const emptyItemHtml = `
+                    <div class="order-item border rounded p-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">Product</label>
+                                <select class="form-select product-select" 
+                                        name="OrderItems[${itemCounter}].ProductId" required>
+                                    <option value="">-- Select Product --</option>
+                                    ${products.map(p =>
+                `<option value="${p.id}" data-price="${p.price}">
+                                            ${p.name} - ${p.price.toFixed(2)} USD
+                                        </option>`
+            ).join('')}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">Quantity</label>
+                                <input type="number" class="form-control quantity-input" 
+                                       name="OrderItems[${itemCounter}].Quantity" 
+                                       value="1" min="1" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Unit Price</label>
+                                <input type="number" class="form-control price-input" 
+                                       name="OrderItems[${itemCounter}].UnitPrice" 
+                                       value="0" step="0.01" min="0.01" required />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold">Actions</label>
+                                <button type="button" class="btn btn-danger btn-sm w-100" 
+                                        onclick="removeOrderItem(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <label class="form-label">Discount %</label>
+                                <input type="number" class="form-control discount-input" 
+                                       name="OrderItems[${itemCounter}].Discount" 
+                                       value="0" min="0" max="100" step="0.01" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Total</label>
+                                <div class="h6 text-success item-total">$0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            $('#orderItemsContainer').append(emptyItemHtml);
+            itemCounter++;
+
+            // Setup event listeners for the new item
+            const newItem = $('#orderItemsContainer .order-item').last();
+            newItem.find('.product-select').change(function () {
+                const selectedOption = $(this).find('option:selected');
+                const price = selectedOption.data('price') || 0;
+                newItem.find('.price-input').val(price);
+                updateItemTotal(newItem);
+            });
+
+            newItem.find('.quantity-input, .price-input, .discount-input').on('input', function () {
+                updateItemTotal(newItem);
+            });
+        };
+    </script>
+}

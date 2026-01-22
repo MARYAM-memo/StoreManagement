@@ -1,0 +1,162 @@
+﻿@model RoleVM
+
+@{
+    ViewData["Title"] = "Create New Role";
+}
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Role</h4>
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border rounded p-4 mb-4">
+                <h5 class="mb-3"><i class="bi bi-shield-check me-2"></i>Permissions</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageUsers" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageUsers" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can create, edit, delete, and manage users</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageRoles" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageRoles" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can create, edit, delete, and manage roles</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageProducts" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageProducts" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage products</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageCategories" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageCategories" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage categories</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageBrands" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageBrands" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage brands</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageCustomers" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageCustomers" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage customers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageOrders" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageOrders" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage orders</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageSuppliers" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageSuppliers" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage suppliers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageInventory" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageInventory" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage inventory</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanViewReports" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanViewReports" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can view reports</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="CanManageSettings" class="form-check-input" type="checkbox" />
+                                <label asp-for="CanManageSettings" class="form-check-label fw-bold"></label>
+                                <div class="form-text">Can manage system settings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Create Role
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,171 @@
+﻿@using StoreManagement.Common
+@using StoreManagement.ViewModels
+
+@model IEnumerable<CategoryVM>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tags"></i> Categories
+        </h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Category
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    
+    <!-- Search Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Search Categories</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="searchTerm" class="form-control"
+                        placeholder="Search by name or description..." value="@ViewData["CurrentFilter"]" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="row">
+        @foreach (var category in Model)
+        {
+            <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
+                <div class="card border-left-@(category.IsActive ? "success" : "secondary") shadow h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">@category.Name</h6>
+                        <span class="badge bg-@(category.IsActive ? "success" : "secondary")">
+                            @(category.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(category.Description))
+                        {
+                            <p class="card-text text-muted mb-3">@category.Description.Truncate(100)</p>
+                        }
+                        else
+                        {
+                            <p class="card-text text-muted mb-3"><i>No description</i></p>
+                        }
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-box"></i> @category.ProductCount Products
+                                </span>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Details" asp-route-id="@category.Id" class="btn btn-sm btn-info"
+                                    title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-warning"
+                                    title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if (category.IsActive)
+                                {
+                                    <a asp-action="Deactivate" asp-route-id="@category.Id" class="btn btn-sm btn-danger"
+                                        title="Deactivate">
+                                        <i class="fas fa-ban"></i>
+                                    </a>
+                                }
+                                <a asp-controller="Products" asp-route-categoryId="@category.Id" asp-action="Create"
+                                    class="btn btn-sm btn-success" title="Add Product">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-calendar"></i>
+                            Updated: @category.UpdatedAt.ToDisplayDate()
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-tags fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No categories found</h4>
+            <p class="text-muted">Create your first category to get started</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Category
+            </a>
+        </div>
+    }
+
+    <!-- Statistics Card -->
+    <div class="card shadow mt-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Categories Statistics</h6>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="h5 text-primary">@Model.Count()</div>
+                    <div class="text-muted">Total Categories</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="h5 text-success">@Model.Count(c => c.IsActive)</div>
+                    <div class="text-muted">Active Categories</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="h5 text-secondary">@Model.Count(c => !c.IsActive)</div>
+                    <div class="text-muted">Inactive Categories</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="h5 text-info">@Model.Sum(c => c.ProductCount)</div>
+                    <div class="text-muted">Total Products</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').alert('close');
+        }, 5000);
+    </script>
+}

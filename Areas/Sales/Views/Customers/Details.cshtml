@@ -1,0 +1,270 @@
+﻿@using StoreManagement.Models
+@model Customer
+@{
+    ViewData["Title"] = "Customer Details";
+    var customerOrders = ViewBag.CustomerOrders as List<Order>;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-info-circle"></i> Customer Details
+        </h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Customer Info -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-@(Model.IsActive ? "success" : "secondary") text-white">
+                    <h6 class="m-0 font-weight-bold">Customer Overview</h6>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-primary mb-3">@Model.Name</h3>
+
+                    <!-- Contact Info -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Contact Information</h6>
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <p><i class="fas fa-phone"></i> @Model.Phone</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <p><i class="fas fa-envelope"></i> @Model.Email</p>
+                        }
+                    </div>
+
+                    <!-- Location Info -->
+                    @if (!string.IsNullOrEmpty(Model.Address) || !string.IsNullOrEmpty(Model.City) ||
+                                        !string.IsNullOrEmpty(Model.Country))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Location</h6>
+                            @if (!string.IsNullOrEmpty(Model.Address))
+                            {
+                                <p><i class="fas fa-map-marker-alt"></i> @Model.Address</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.City) || !string.IsNullOrEmpty(Model.Country))
+                            {
+                                <p>
+                                    @if (!string.IsNullOrEmpty(Model.City))
+                                    {
+                                        <span>@Model.City</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.Country))
+                                    {
+                                        <span>, @Model.Country</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.PostalCode))
+                                    {
+                                        <br />
+                                        <small>Postal Code: @Model.PostalCode</small>
+                                    }
+                                </p>
+                            }
+                        </div>
+                    }
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Status</h6>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Notes</h6>
+                            <p class="text-muted">@Model.Notes</p>
+                        </div>
+                    }
+
+                    <!-- Statistics -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold">Customer Statistics</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="h4 text-primary mb-1">@Model.TotalOrders</div>
+                                <small class="text-muted">Total Orders</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h4 text-success mb-1">@Model.TotalSpent.ToString("C")</div>
+                                <small class="text-muted">Total Spent</small>
+                            </div>
+                        </div>
+                        @if (Model.LastPurchaseDate.HasValue)
+                        {
+                            <div class="mt-2 text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> Last purchase:
+                                    @Model.LastPurchaseDate.Value.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-calendar-plus"></i> Customer since:
+                        @Model.CreatedAt.ToString("MMM dd, yyyy")
+                    </small>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Customer
+                        </a>
+                        <a asp-controller="Orders" asp-action="Create" asp-route-customerId="@Model.Id"
+                            class="btn btn-success">
+                            <i class="fas fa-shopping-cart"></i> Create New Order
+                        </a>
+                        @if (Model.IsActive)
+                        {
+                            <a asp-action="Deactivate" asp-route-id="@Model.Id" class="btn btn-danger">
+                                <i class="fas fa-ban"></i> Deactivate
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-success">
+                                <i class="fas fa-check"></i> Reactivate
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Customer Orders -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-shopping-cart"></i> Recent Orders
+                    </h6>
+                    <span class="badge bg-primary">@Model.TotalOrders orders</span>
+                </div>
+                <div class="card-body">
+                    @if (customerOrders?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in customerOrders)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@order.OrderNumber</strong>
+                                            </td>
+                                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                                    @order.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetPaymentBadgeClass(order.PaymentStatus??"")">
+                                                    @(order.PaymentStatus ?? "Pending")
+                                                </span>
+                                            </td>
+                                            <td class="text-success fw-bold">@order.TotalAmount.ToString("C")</td>
+                                            <td>
+                                                <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                                    class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (Model.TotalOrders > 10)
+                        {
+                            <div class="text-center mt-3">
+                                <a asp-controller="Orders" asp-action="Index" asp-route-customerId="@Model.Id"
+                                    class="btn btn-outline-primary">
+                                    <i class="fas fa-list"></i> View All Orders (@Model.TotalOrders)
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No orders yet</h5>
+                            <p class="text-muted">This customer hasn't placed any orders yet</p>
+                            <a asp-controller="Orders" asp-action="Create" asp-route-customerId="@Model.Id"
+                                class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create First Order
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "badge-warning",
+            "processing" => "badge-info",
+            "completed" => "badge-success",
+            "cancelled" => "badge-danger",
+            "refunded" => "badge-secondary",
+            _ => "badge-secondary"
+        };
+    }
+
+    private string GetPaymentBadgeClass(string paymentStatus)
+    {
+        return paymentStatus?.ToLower() switch
+        {
+            "paid" => "badge-success",
+            "pending" => "badge-warning",
+            "failed" => "badge-danger",
+            "refunded" => "badge-secondary",
+            _ => "badge-secondary"
+        };
+    }
+}

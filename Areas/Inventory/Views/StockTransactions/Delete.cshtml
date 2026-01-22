@@ -1,0 +1,221 @@
+﻿@using StoreManagement.Models.Inventory
+
+@model StockTransaction
+
+@{
+    ViewData["Title"] = "Delete Transaction";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800 text-danger">
+            <i class="fas fa-exclamation-triangle"></i> Delete Transaction
+        </h1>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+            <i class="fas fa-arrow-left"></i> Back to Details
+        </a>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card shadow border-danger mb-4">
+        <div class="card-header py-3 bg-danger text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-exclamation-circle"></i> Delete Transaction #@Model.Id
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">
+                    <i class="fas fa-skull-crossbones"></i> Warning: This will affect stock levels!
+                </h5>
+                <p class="mb-0">
+                    Deleting this transaction will reverse its effect on product stock levels.
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <!-- Transaction Details -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h4 class="text-danger">Transaction Summary</h4>
+                    <table class="table table-sm table-bordered">
+                        <tr>
+                            <th>Date:</th>
+                            <td>@Model.TransactionDate.ToString("MMM dd, yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td>
+                                <span class="badge @GetTransactionBadgeClass(Model.TransactionType)">
+                                    @Model.TransactionType
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Product:</th>
+                            <td>@Model.Product?.Name</td>
+                        </tr>
+                        <tr>
+                            <th>Quantity:</th>
+                            <td>@Model.Quantity units</td>
+                        </tr>
+                        <tr>
+                            <th>Unit Cost:</th>
+                            <td>@Model.UnitCost.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <th>Total Cost:</th>
+                            <td class="fw-bold @(Model.TransactionType == "Sale" ? "text-danger" : "text-success")">
+                                @Model.TotalCost.ToString("C")
+                            </td>
+                        </tr>
+                        @if (!string.IsNullOrEmpty(Model.ReferenceNumber))
+                        {
+                            <tr>
+                                <th>Reference:</th>
+                                <td>@Model.ReferenceNumber</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <!-- Stock Impact -->
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-white">
+                            <h6 class="mb-0">Stock Impact</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            @if (Model.TransactionType == "Sale")
+                            {
+                                <div class="display-6 text-success mb-2">+@Model.Quantity</div>
+                                <small class="text-muted">Units will be added back to stock</small>
+                            }
+                            else
+                            {
+                                <div class="display-6 text-danger mb-2">-@Model.Quantity</div>
+                                <small class="text-muted">Units will be removed from stock</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What will happen -->
+            <div class="mb-4">
+                <h6><i class="fas fa-list"></i> This action will:</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-trash text-danger"></i>
+                        Permanently delete the transaction record
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-undo text-warning"></i>
+                        Reverse the stock impact on "@Model.Product?.Name"
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-chart-line text-info"></i>
+                        Update product statistics and reports
+                    </li>
+                    @if (Model.Supplier != null)
+                    {
+                        <li class="list-group-item">
+                            <i class="fas fa-truck text-secondary"></i>
+                            Update supplier transaction history
+                        </li>
+                    }
+                    <li class="list-group-item">
+                        <i class="fas fa-ban text-danger"></i>
+                        This action cannot be undone
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Delete Form -->
+            <div class="mt-4 pt-3 border-top">
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Confirmation Checkboxes -->
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmIrreversible" required>
+                        <label class="form-check-label text-danger fw-bold" for="confirmIrreversible">
+                            I understand this action is permanent and irreversible
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmStock" required>
+                        <label class="form-check-label text-warning fw-bold" for="confirmStock">
+                            I understand stock levels will be affected
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmProduct" required>
+                        <label class="form-check-label text-info fw-bold" for="confirmProduct">
+                            I understand this will affect product "@Model.Product?.Name"
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-group" role="group">
+                        <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                            <i class="fas fa-trash"></i> Confirm Delete
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Enable delete button only when all checkboxes are checked
+            function updateDeleteButton() {
+                const allChecked = $('#confirmIrreversible').is(':checked') &&
+                    $('#confirmStock').is(':checked') &&
+                    $('#confirmProduct').is(':checked');
+                $('#deleteBtn').prop('disabled', !allChecked);
+            }
+
+            $('.form-check-input').change(updateDeleteButton);
+
+            // Confirmation dialog on form submit
+            $('form').submit(function (e) {
+                if (!$('#confirmIrreversible').is(':checked') ||
+                    !$('#confirmStock').is(':checked') ||
+                    !$('#confirmProduct').is(':checked')) {
+                    e.preventDefault();
+                    alert('Please confirm all the statements above.');
+                    return false;
+                }
+
+                return confirm('⚠️ WARNING: Deleting this transaction will affect stock levels!\n\nAre you absolutely sure you want to delete this transaction?');
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetTransactionBadgeClass(string transactionType)
+    {
+        return transactionType?.ToLower() switch
+        {
+            "purchase" => "bg-success",
+            "sale" => "bg-primary",
+            "return" => "bg-warning",
+            "adjustment" => "bg-info",
+            "transfer" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

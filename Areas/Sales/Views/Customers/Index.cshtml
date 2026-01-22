@@ -1,0 +1,380 @@
+﻿@using StoreManagement.Areas.Sales.ViewModels
+@using StoreManagement.Common
+@model IEnumerable<CustomerVM>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users"></i> Customers
+        </h1>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Customer
+            </a>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#quickCreateModal">
+                <i class="fas fa-bolt"></i> Quick Add
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Customers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count()</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Customers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(c => c.IsActive)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Orders
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(c => c.TotalOrders)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(c =>
+                                                                c.TotalSpent).ToString("C")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Search & Filter Customers</h6>
+            <div class="btn-group">
+                <a asp-action="Index" asp-route-filter="all"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "all" ? "btn-primary" : "btn-outline-primary")">
+                    All
+                </a>
+                <a asp-action="Index" asp-route-filter="active"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "active" ? "btn-primary" : "btn-outline-primary")">
+                    Active
+                </a>
+                <a asp-action="Index" asp-route-filter="inactive"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "inactive" ? "btn-primary" : "btn-outline-primary")">
+                    Inactive
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="searchTerm" class="form-control"
+                        placeholder="Search by name, phone, or email..." value="@ViewData["CurrentFilter"]" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Customers List</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="customersTable" width="100%" cellspacing="0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Customer</th>
+                            <th>Contact Info</th>
+                            <th>Location</th>
+                            <th>Orders</th>
+                            <th>Total Spent</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@customer.Name</strong>
+                                    @if (!string.IsNullOrEmpty(customer.Notes))
+                                    {
+                                        <br />
+                                        <small class="text-muted">@customer.Notes.Truncate(50)</small>
+                                    }
+                                    @if (customer.LastPurchaseDate.HasValue)
+                                    {
+                                        <br />
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> Last purchase:
+                                            @customer.LastPurchaseDate.Value.ToString("MMM dd, yyyy")
+                                        </small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(customer.Phone))
+                                    {
+                                        <div><i class="fas fa-phone"></i> @customer.Phone</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(customer.Email))
+                                    {
+                                        <div><i class="fas fa-envelope"></i> @customer.Email</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(customer.City) || !string.IsNullOrEmpty(customer.Country))
+                                    {
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(customer.City))
+                                            {
+                                                <span>@customer.City</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(customer.Country))
+                                            {
+                                                <span>, @customer.Country</span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(customer.Address))
+                                    {
+                                        <small class="text-muted">@customer.Address.Truncate(30)</small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">@customer.TotalOrders</span>
+                                </td>
+                                <td class="text-success fw-bold">
+                                    @customer.TotalSpent.ToString("C")
+                                </td>
+                                <td>
+                                    @if (customer.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-info"
+                                            title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning"
+                                            title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-controller="Orders" asp-action="Create" asp-route-customerId="@customer.Id"
+                                            class="btn btn-sm btn-success" title="New Order">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </a>
+                                        @if (customer.IsActive)
+                                        {
+                                            <a asp-action="Deactivate" asp-route-id="@customer.Id" class="btn btn-sm btn-danger"
+                                                title="Deactivate">
+                                                <i class="fas fa-ban"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No customers found</h4>
+                    <p class="text-muted">Create your first customer to get started</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Customer
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Create Modal -->
+<div class="modal fade" id="quickCreateModal" tabindex="-1" aria-labelledby="quickCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickCreateModalLabel">
+                    <i class="fas fa-bolt"></i> Quick Add Customer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickCreateForm">
+                    <div class="mb-3">
+                        <label for="quickName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="quickName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickPhone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="quickPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="quickEmail">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="quickCreateBtn">
+                    <i class="fas fa-save"></i> Save Customer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').alert('close');
+        }, 5000);
+
+        // Quick Create Customer
+        $('#quickCreateBtn').click(function () {
+            var name = $('#quickName').val();
+            var phone = $('#quickPhone').val();
+            var email = $('#quickEmail').val();
+
+            if (!name.trim()) {
+                alert('Customer name is required');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("QuickCreate", "Customers")',
+                type: 'POST',
+                data: {
+                    name: name,
+                    phone: phone,
+                    email: email
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#quickCreateModal').modal('hide');
+
+                        // Show success message
+                        Toastify({
+                            text: response.message,
+                            duration: 3000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "#198754",
+                        }).showToast();
+
+                        // Redirect to customer details or reload
+                        setTimeout(function () {
+                            window.location.href = '@Url.Action("Details", "Customers")' + '/' + response.customerId;
+                        }, 1500);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        });
+
+        // Clear form when modal is closed
+        $('#quickCreateModal').on('hidden.bs.modal', function () {
+            $('#quickName').val('');
+            $('#quickPhone').val('');
+            $('#quickEmail').val('');
+        });
+    </script>
+}

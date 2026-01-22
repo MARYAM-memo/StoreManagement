@@ -1,0 +1,297 @@
+﻿@using StoreManagement.Areas.Inventory.ViewModels
+@using StoreManagement.Common
+@model IEnumerable<SupplierVM>
+
+@{
+    ViewData["Title"] = "Suppliers";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-truck"></i> Suppliers
+        </h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Supplier
+        </a>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Suppliers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count()</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Suppliers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Count(s => s.IsActive)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Products Supplied
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(s => s.ProductCount)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Purchases
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Sum(s =>
+                                                                s.TotalPurchases).ToString("C")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Search & Filter Suppliers</h6>
+            <div class="btn-group">
+                <a asp-action="Index" asp-route-filter="all"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "all" ? "btn-primary" : "btn-outline-primary")">
+                    All
+                </a>
+                <a asp-action="Index" asp-route-filter="active"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "active" ? "btn-primary" : "btn-outline-primary")">
+                    Active
+                </a>
+                <a asp-action="Index" asp-route-filter="inactive"
+                    class="btn btn-sm @(ViewData["CurrentFilterType"] as string == "inactive" ? "btn-primary" : "btn-outline-primary")">
+                    Inactive
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="searchTerm" class="form-control"
+                        placeholder="Search by name, contact person, phone, or email..."
+                        value="@ViewData["CurrentFilter"]" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Suppliers Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Suppliers List</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="suppliersTable" width="100%" cellspacing="0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Contact Info</th>
+                            <th>Location</th>
+                            <th>Products</th>
+                            <th>Purchases</th>
+                            <th>Credit/Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var supplier in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@supplier.Name</strong>
+                                    @if (!string.IsNullOrEmpty(supplier.ContactPerson))
+                                    {
+                                        <br />
+                                        <small class="text-muted">Contact: @supplier.ContactPerson</small>
+                                    }
+                                    @if (!string.IsNullOrEmpty(supplier.Notes))
+                                    {
+                                        <br />
+                                        <small class="text-muted">@supplier.Notes.Truncate(50)</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.Phone))
+                                    {
+                                        <div><i class="fas fa-phone"></i> @supplier.Phone</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(supplier.Email))
+                                    {
+                                        <div><i class="fas fa-envelope"></i> @supplier.Email</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(supplier.Website))
+                                    {
+                                        <div><i class="fas fa-globe"></i> @supplier.Website.Truncate(20)</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.City) || !string.IsNullOrEmpty(supplier.Country))
+                                    {
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(supplier.City))
+                                            {
+                                                <span>@supplier.City</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(supplier.Country))
+                                            {
+                                                <span>, @supplier.Country</span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(supplier.Address))
+                                    {
+                                        <small class="text-muted">@supplier.Address.Truncate(30)</small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">@supplier.ProductCount</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="text-success fw-bold">@supplier.TotalPurchases.ToString("C")</div>
+                                    <small class="text-muted">@supplier.TransactionCount transactions</small>
+                                </td>
+                                <td>
+                                    <div>
+                                        <small>Limit: @supplier.CreditLimit.ToString("C")</small>
+                                        <br />
+                                        <small>Balance:
+                                            <span class="@(supplier.Balance > 0 ? "text-danger" : "text-success")">
+                                                @supplier.Balance.ToString("C")
+                                            </span>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (supplier.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@supplier.Id" class="btn btn-sm btn-info"
+                                            title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@supplier.Id" class="btn btn-sm btn-warning"
+                                            title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="QuickPurchase" asp-route-id="@supplier.Id"
+                                            class="btn btn-sm btn-success" title="Quick Purchase">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@supplier.Id" class="btn btn-sm btn-danger"
+                                            title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No suppliers found</h4>
+                    <p class="text-muted">Create your first supplier to get started</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Supplier
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').alert('close');
+        }, 5000);
+    </script>
+}

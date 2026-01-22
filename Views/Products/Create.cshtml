@@ -1,0 +1,228 @@
+﻿@using StoreManagement.Common
+@using StoreManagement.ViewModels
+@model ProductVM
+
+@{
+    ViewData["Title"] = "Create New Product";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle"></i> Create New Product
+        </h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Product Information</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <!-- Product Name -->
+                        <div class="form-group mb-3">
+                            <label asp-for="Name" class="form-label fw-bold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Price" class="form-label fw-bold"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock Levels -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="StockQuantity" class="form-label fw-bold"></label>
+                                    <input asp-for="StockQuantity" class="form-control" value="0" />
+                                    <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image URL -->
+                        <div class="form-group mb-3">
+                            <label asp-for="ImageUrl" class="form-label fw-bold">Image File</label>
+                            <input asp-for="ImageUrl" type="file" name="imageFile" id="imageInput" accept="image/*"
+                                class="form-control" />
+                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                            <small class="form-text text-muted">Choose an image from your device.</small>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <!-- Description -->
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                placeholder="Enter product description..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group mb-3">
+                            <label asp-for="CategoryId" class="form-label fw-bold"></label>
+                            <select asp-for="CategoryId" class="form-select"
+                                asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Brand -->
+                        <div class="form-group mb-3">
+                            <label asp-for="BrandId" class="form-label fw-bold"></label>
+                            <select asp-for="BrandId" class="form-select"
+                                asp-items="@(new SelectList(Model.Brands, "Id", "Name"))">
+                                <option value="">-- Select Brand --</option>
+                            </select>
+                            <span asp-validation-for="BrandId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="form-group mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+                                <label asp-for="IsActive" class="form-check-label fw-bold"></label>
+                            </div>
+                            <span asp-validation-for="IsActive" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="form-group mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Product
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Preview</h6>
+        </div>
+        <div class="card-body text-center">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="preview-image border p-3 rounded">
+                        <img id="imagePreview" src="@(string.IsNullOrEmpty(Model?.ImageUrl) 
+                                                                                                  ? @DefaultValues.DefaultProductImage 
+                                                                                                  : Model.ImageUrl)"
+                                                                                                   alt="Product Preview" class="img-fluid rounded"
+                            style="max-height: 200px; object-fit: contain;">
+                        <div class="mt-2">
+                            <small class="text-muted">Image Preview</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 text-start">
+                    <h4 id="namePreview" class="text-primary">Product Name</h4>
+                    <p id="descriptionPreview" class="text-muted">Product description will appear here...</p>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <strong>Price:</strong>
+                            <div id="pricePreview" class="text-success fw-bold">$0.00</div>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Stock:</strong>
+                            <div id="stockPreview" class="badge bg-secondary">0</div>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Status:</strong>
+                            <div id="statusPreview" class="badge bg-success">Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Live Preview
+        $(document).ready(function () {
+            // Update preview when input changes
+            $('#Name').on('input', function () {
+                $('#namePreview').text($(this).val() || 'Product Name');
+            });
+
+            $('#Description').on('input', function () {
+                $('#descriptionPreview').text($(this).val() || 'Product description will appear here...');
+            });
+
+            $('#Price').on('input', function () {
+                const price = parseFloat($(this).val()) || 0;
+                $('#pricePreview').text('$' + price.toFixed(2));
+            });
+
+            $('#StockQuantity').on('input', function () {
+                const stock = parseInt($(this).val()) || 0;
+                let badgeClass = 'bg-secondary';
+
+                if (stock <= 10) badgeClass = 'bg-danger';
+                else if (stock <= 20) badgeClass = 'bg-warning';
+                else badgeClass = 'bg-success';
+
+                $('#stockPreview').text(stock).removeClass().addClass('badge ' + badgeClass);
+            });
+
+            $('#imageInput').on('change', function () {
+                const file = this.files[0];
+
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        $('#imagePreview').attr('src', e.target.result);
+                    };
+
+                    reader.readAsDataURL(file);
+                } else {
+                    $('#imagePreview').attr('src', '@DefaultValues.DefaultProductImage');
+                }
+            });
+
+
+            $('#IsActive').change(function () {
+                const isActive = $(this).is(':checked');
+                const statusText = isActive ? 'Active' : 'Inactive';
+                const statusClass = isActive ? 'bg-success' : 'bg-secondary';
+
+                $('#statusPreview').text(statusText).removeClass().addClass('badge ' + statusClass);
+            });
+        });
+    </script>
+}

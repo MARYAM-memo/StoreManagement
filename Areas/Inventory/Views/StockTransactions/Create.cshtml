@@ -1,0 +1,393 @@
+﻿@using StoreManagement.Areas.Inventory.ViewModels
+@model StockTransactionVM
+
+@{
+    ViewData["Title"] = "Create Stock Transaction";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-plus-circle"></i> Create Stock Transaction
+        </h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Transaction Form -->
+    <div class="row">
+        <!-- Left Column: Form -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Transaction Information</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="transactionForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Basic Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="TransactionType" class="form-label fw-bold"></label>
+                                    <select asp-for="TransactionType" class="form-select" id="transactionTypeSelect">
+                                        <option value="Purchase">Purchase</option>
+                                        <option value="Sale">Sale</option>
+                                        <option value="Return">Return</option>
+                                        <option value="Adjustment">Adjustment</option>
+                                        <option value="Transfer">Transfer</option>
+                                    </select>
+                                    <span asp-validation-for="TransactionType" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="TransactionDate" class="form-label fw-bold"></label>
+                                    <input asp-for="TransactionDate" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="TransactionDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="ReferenceNumber" class="form-label fw-bold"></label>
+                                    <input asp-for="ReferenceNumber" class="form-control"
+                                        placeholder="Auto-generated" />
+                                    <span asp-validation-for="ReferenceNumber" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Selection -->
+                        <div class="card border mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0 fw-bold">Product Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="ProductId" class="form-label fw-bold"></label>
+                                            <select asp-for="ProductId" class="form-select" id="productSelect" required>
+                                                <option value="">-- Select Product --</option>
+                                                @foreach (var product in Model.Products)
+                                                {
+                                                    <option value="@product.Id" data-price="@product.Price"
+                                                        data-cost="@product.Price"
+                                                        data-stock="@product.StockQuantity">
+                                                        @product.Name  Stock: @product.StockQuantity
+                                                    </option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="ProductId" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label fw-bold">Current Stock</label>
+                                            <div class="form-control-plaintext" id="currentStockDisplay">
+                                                0 units
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Supplier Selection (for purchases) -->
+                                <div class="row mt-3" id="supplierSection">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="SupplierId" class="form-label fw-bold"></label>
+                                            <select asp-for="SupplierId" class="form-select" id="supplierSelect">
+                                                <option value="">-- Select Supplier (Optional) --</option>
+                                                @foreach (var supplier in Model.Suppliers)
+                                                {
+                                                    <option value="@supplier.Id">@supplier.Name</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity and Cost -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="Quantity" class="form-label fw-bold"></label>
+                                    <input asp-for="Quantity" class="form-control" value="1" min="1" />
+                                    <span asp-validation-for="Quantity" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="UnitCost" class="form-label fw-bold"></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="UnitCost" class="form-control" value="0" step="0.01"
+                                            min="0.01" />
+                                    </div>
+                                    <span asp-validation-for="UnitCost" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">Total Cost</label>
+                                    <div class="form-control-plaintext fw-bold text-success" id="totalCostDisplay">
+                                        $0.00
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label fw-bold">New Stock</label>
+                                    <div class="form-control-plaintext fw-bold" id="newStockDisplay">
+                                        0 units
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="ReferenceType" class="form-label fw-bold"></label>
+                                    <input asp-for="ReferenceType" class="form-control"
+                                        placeholder="e.g., Purchase Order, Invoice" />
+                                    <span asp-validation-for="ReferenceType" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="ReferenceId" class="form-label fw-bold"></label>
+                                    <input asp-for="ReferenceId" class="form-control"
+                                        placeholder="Reference ID (Optional)" />
+                                    <span asp-validation-for="ReferenceId" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"
+                                placeholder="Enter any notes about this transaction..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="form-group mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Transaction
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Info and Preview -->
+        <div class="col-lg-4">
+            <!-- Transaction Preview -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-eye"></i> Transaction Preview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Type:</strong>
+                        <span class="badge bg-success float-end" id="previewType">Purchase</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Product:</strong>
+                        <span class="float-end" id="previewProduct">None selected</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Quantity:</strong>
+                        <span class="float-end" id="previewQuantity">0</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Unit Cost:</strong>
+                        <span class="float-end" id="previewUnitCost">$0.00</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Total Cost:</strong>
+                        <span class="float-end fw-bold text-success" id="previewTotalCost">$0.00</span>
+                    </div>
+                    <hr>
+                    <div>
+                        <strong>Stock Impact:</strong>
+                        <span class="float-end text-success" id="previewStockImpact">+0 units</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Create" asp-route-transactionType="Purchase" class="btn btn-success">
+                            <i class="fas fa-shopping-cart"></i> Quick Purchase
+                        </a>
+                        <a asp-action="Create" asp-route-transactionType="Sale" class="btn btn-primary">
+                            <i class="fas fa-cash-register"></i> Quick Sale
+                        </a>
+                        <a asp-action="Create" asp-route-transactionType="Adjustment" class="btn btn-warning">
+                            <i class="fas fa-adjust"></i> Stock Adjustment
+                        </a>
+                        <a asp-action="BulkPurchase" class="btn btn-info">
+                            <i class="fas fa-cart-plus"></i> Bulk Purchase
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Initialize
+            updatePreview();
+
+            // Event Listeners
+            $('#productSelect').change(updateProductDetails);
+            $('#transactionTypeSelect').change(updateTransactionType);
+            $('#Quantity, #UnitCost').on('input', updatePreview);
+        });
+
+        function updateProductDetails() {
+            const selectedOption = $('#productSelect option:selected');
+            const productId = selectedOption.val();
+
+            if (productId) {
+                const stock = selectedOption.data('stock') || 0;
+                const cost = selectedOption.data('cost') || 0;
+                const sku = selectedOption.data('sku') || '';
+
+                // Update displays
+                $('#currentStockDisplay').text(stock + ' units');
+                $('#UnitCost').val(cost);
+
+                // Update preview
+                updatePreview();
+            } else {
+                $('#currentStockDisplay').text('0 units');
+                $('#UnitCost').val(0);
+                updatePreview();
+            }
+        }
+
+        function updateTransactionType() {
+            const type = $('#transactionTypeSelect').val();
+
+            // Show/hide supplier section
+            if (type === 'Purchase') {
+                $('#supplierSection').show();
+                $('#supplierSelect').prop('required', false);
+            } else {
+                $('#supplierSection').hide();
+                $('#supplierSelect').prop('required', false);
+            }
+
+            // Auto-generate reference number
+            if (!$('#ReferenceNumber').val()) {
+                const prefix = type.substring(0, 3).toUpperCase();
+                const timestamp = new Date().getTime().toString().slice(-6);
+                $('#ReferenceNumber').val(`${prefix}-${timestamp}`);
+            }
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const type = $('#transactionTypeSelect').val();
+            const product = $('#productSelect option:selected').text();
+            const quantity = parseInt($('#Quantity').val()) || 0;
+            const unitCost = parseFloat($('#UnitCost').val()) || 0;
+            const currentStock = parseInt($('#productSelect option:selected').data('stock')) || 0;
+
+            const totalCost = quantity * unitCost;
+
+            // Calculate stock impact
+            let stockImpact = 0;
+            let stockImpactText = '';
+            let stockImpactClass = '';
+
+            switch (type) {
+                case 'Purchase':
+                case 'Return':
+                    stockImpact = currentStock + quantity;
+                    stockImpactText = `+${quantity} units`;
+                    stockImpactClass = 'text-success';
+                    break;
+                case 'Sale':
+                    stockImpact = currentStock - quantity;
+                    stockImpactText = `-${quantity} units`;
+                    stockImpactClass = 'text-danger';
+                    break;
+                case 'Adjustment':
+                    stockImpact = quantity;
+                    stockImpactText = `Set to ${quantity} units`;
+                    stockImpactClass = 'text-warning';
+                    break;
+                default:
+                    stockImpact = currentStock;
+                    stockImpactText = 'No change';
+                    stockImpactClass = 'text-muted';
+            }
+
+            // Update preview display
+            $('#previewType').text(type).removeClass().addClass(`badge bg-${GetTypeColor(type)}`);
+            $('#previewProduct').text(product.split(' - ')[0] || 'None selected');
+            $('#previewQuantity').text(quantity);
+            $('#previewUnitCost').text('$' + unitCost.toFixed(2));
+            $('#previewTotalCost').text('$' + totalCost.toFixed(2));
+            $('#previewStockImpact').text(stockImpactText).removeClass().addClass(stockImpactClass);
+
+            // Update main form displays
+            $('#totalCostDisplay').text('$' + totalCost.toFixed(2));
+            $('#newStockDisplay').text(stockImpact + ' units');
+
+            // Validation warning for insufficient stock
+            if (type === 'Sale' && quantity > currentStock) {
+                $('#newStockDisplay').addClass('text-danger');
+                $('#previewStockImpact').addClass('text-danger');
+            } else {
+                $('#newStockDisplay').removeClass('text-danger');
+            }
+        }
+
+        function GetTypeColor(type) {
+            switch (type.toLowerCase()) {
+                case 'purchase': return 'success';
+                case 'sale': return 'primary';
+                case 'return': return 'warning';
+                case 'adjustment': return 'info';
+                case 'transfer': return 'secondary';
+                default: return 'secondary';
+            }
+        }
+
+        // Initialize transaction type
+        updateTransactionType();
+    </script>
+}
